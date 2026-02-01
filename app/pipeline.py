@@ -14,6 +14,6 @@ class CaptionPipeline:
         if not os.path.exists(image_path):
             raise ImageNotFoundError(f"Image not found: {image_path}")
 
-        caption = self.caption_model.generate_caption(image_path)
+        caption = self.caption_model.generate(image_path)
         enhanced_caption = self.caption_enhancer.enhance_caption(caption)
         return enhanced_caption
