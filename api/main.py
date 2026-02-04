@@ -1,39 +1,60 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
-from app.pipeline import CaptionPipeline
-from app.errors import ImageNotFoundError, CaptionGenerationError
-import tempfile
-import shutil
+import argparse
 import os
+import sys
 
-app = FastAPI(
-    title="Image Captioning API",
-    description="Generate captions for images using a pretrained vision-language model",
-    version="1.0.0",
-)
+from app.pipeline import CaptionPipeline
+from app.enhancer import CaptionEnhancer
+from app.errors import ImageNotFoundError, CaptionGenerationError
 
-pipeline = CaptionPipeline()
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Generate image captions using a pretrained model"
+    )
 
+    parser.add_argument(
+        "--image",
+        "-i",
+        required=True,
+        help="Path to the input image"
+    )
 
-@app.post("/caption")
-async def generate_caption(file: UploadFile = File(...)):
-    if not file.content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="Uploaded file must be an image")
+    parser.add_argument(
+        "--enhance",
+        action="store_true",
+        help="Enhance the generated caption"
+    )
+
+    return parser.parse_args()
+
+def main():
+    args = parse_args()
+
+    image_path = args.image
+
+    if not os.path.exists(image_path):
+        print(f"Image not found: {image_path}")
+        sys.exit(1)
 
     try:
-        # save uploaded image temporarily
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp:
-            shutil.copyfileobj(file.file, tmp)
-            temp_path = tmp.name
+        pipeline = CaptionPipeline()
 
-        caption = pipeline.generate_caption(temp_path)
-        return {"caption": caption}
+        print("\nImage caption:")
+        caption = pipeline.generate_caption(image_path, enhance=False)
+        print(caption)
+
+        print("\nWith enhancement:")
+        print(pipeline.generate_caption(image_path, enhance=True))
 
     except ImageNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-
+        print(f"{e}")
+        sys.exit(1)
     except CaptionGenerationError as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"Caption generation failed: {e}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        sys.exit(1)
 
-    finally:
-        if "temp_path" in locals() and os.path.exists(temp_path):
-            os.remove(temp_path)
+
+if __name__ == "__main__":
+    main()
