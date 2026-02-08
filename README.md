@@ -34,7 +34,6 @@ image-captioning/
     │   ├── enhancer.py
     │   └── errors.py
 ├── main.py
-├── examples/             # Dataset for evaluation and testing
 ├── tests/                # Unit tests for core components
 ├── .env                  # Environment variables (API Keys)
 ├── requirements.txt      # Project dependencies

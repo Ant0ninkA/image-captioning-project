@@ -53,7 +53,7 @@ GEMINI_API_KEY=<your_api_key>
 
 ## Run the application
 ```bash
-streamlit run src/api/gui.py
+python -m streamlit run src/api/gui.py
 ```
 
 ## Troubleshooting
