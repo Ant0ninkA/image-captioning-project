@@ -1,4 +1,4 @@
-# 📸 AI Image Storyteller
+# 📸 AI Image Captioner
 
 A hybrid image captioning system that leverages local computer vision (BLIP) and cloud-based Large Language Models (Gemini) to transform visual data into rich, cinematic narratives.
 
