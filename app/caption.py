@@ -65,7 +65,8 @@ class CaptionModel:
             self.model.eval()
 
         except Exception as e:
-            raise CaptionGenerationError(f"Failed to load caption model: {e}", details=str(e)) from e
+            raise CaptionGenerationError(f"Failed to load caption model: {e}",
+                                          details=str(e)) from e
 
     def generate(self, image_path: str) -> str:
         """
@@ -92,7 +93,7 @@ class CaptionModel:
 
             with torch.no_grad():
                 output = self.model.generate(
-                   **inputs, 
+                   **inputs,
                     max_length=self.max_length,
                     num_beams=5,
                     repetition_penalty=1.3,

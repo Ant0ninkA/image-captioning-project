@@ -12,7 +12,6 @@ from app.errors import (
     EnhancementError,
     APIConfigurationError,
     ResourceLimitError,
-    ImageCaptioningError,
     ModelNetworkError
 )
 
@@ -40,19 +39,19 @@ class CaptionEnhancer:
             if not api_key:
                 logger.error("GEMINI_API_KEY not found in .env file.")
                 raise APIConfigurationError("API Key missing. Please check your .env file.",
-                                            details="GEMINI_API_KEY environment variable is required.")
+                                        details="GEMINI_API_KEY environment variable is required.")
 
             try:
                 genai.configure(api_key=api_key)
 
                 available_models = [
-                    m.name for m in genai.list_models() 
+                    m.name for m in genai.list_models()
                     if 'generateContent' in m.supported_generation_methods
                 ]
 
                 if not available_models:
                     raise EnhancementError("No generative models available for this API key.",
-                                            details="Check your API key permissions and model availability.")
+                                    details="Check your API key permissions and model availability.")
 
                 priority_list = [
                     'models/gemini-1.5-flash',
@@ -81,7 +80,8 @@ class CaptionEnhancer:
                 )
             except Exception as e:
                 logger.error(f"Initialization failed: {str(e)}")
-                raise APIConfigurationError(f"API initialization failed: {e}", details=str(e)) from e
+                raise APIConfigurationError(f"API initialization failed: {e}",
+                                             details=str(e)) from e
 
     def enhance(self, caption: str) -> str:
         """
@@ -112,7 +112,7 @@ class CaptionEnhancer:
 
             if response and response.text:
                 text = response.text.strip().replace('"', '')
-                
+
                 return text
 
             return caption
@@ -126,4 +126,4 @@ class CaptionEnhancer:
                 raise ModelNetworkError("Please check your internet connection", details=str(e))
             else:
                 raise EnhancementError("Enhancement failed", details=str(e))
-       
+

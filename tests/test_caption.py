@@ -2,13 +2,13 @@
 
 import os
 from typing import Any
-import pytest
 from unittest.mock import MagicMock, patch
+import pytest
 import torch
 from app.caption import CaptionModel
 from app.errors import (
     CaptionGenerationError,
-    ImageNotFoundError, 
+    ImageNotFoundError,
     InvalidImageError,
     ResourceLimitError
 )
@@ -23,7 +23,6 @@ class DummyProcessor:
         """Simulate decoding of model tokens."""
         _ = (output, skip_special_tokens)
         return "dummy caption"
-
 
 class DummyInputs(dict):
     """Mock for model input tensors."""
@@ -44,9 +43,9 @@ class DummyModel:
         _ = device
         return self
 
-    def eval(self) -> 'DummyModel':
+    def eval(self, is_eval: bool = True) -> 'DummyModel':
         """Simulate setting eval mode and return self."""
-        self.is_eval = True
+        self.is_eval = is_eval
         return self
 
 def create_fake_caption_model() -> CaptionModel:
@@ -56,6 +55,7 @@ def create_fake_caption_model() -> CaptionModel:
     model.processor = DummyProcessor()
     model.model = DummyModel()
     model.max_length = 20
+    # pylint: disable=protected-access
     model._load_model = lambda: None
     return model
 
@@ -72,7 +72,6 @@ def test_caption_model_image_not_found() -> None:
     with pytest.raises(ImageNotFoundError):
         model.generate("missing.jpg")
 
-
 def test_caption_model_invalid_image(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test that InvalidImageError is raised for corrupted image files."""
     model = create_fake_caption_model()
@@ -86,7 +85,6 @@ def test_caption_model_invalid_image(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("PIL.Image.open", fake_open)
     with pytest.raises(InvalidImageError):
         model.generate("fake.jpg")
-
 
 def test_caption_model_resource_limit(monkeypatch: pytest.MonkeyPatch) -> None:
     """Test that ResourceLimitError is raised when GPU memory is exceeded."""
@@ -122,33 +120,35 @@ def test_caption_model_general_error(monkeypatch: pytest.MonkeyPatch) -> None:
         model.generate("fake.jpg")
     assert "Caption generation failed" in str(excinfo.value)
 
-def test_load_model_already_loaded():
+def test_load_model_already_loaded() -> None:
     """Tests that _load_model returns early if model is already present"""
     model = create_fake_caption_model()
     assert model._load_model() is None
 
-def test_load_model_error():
+def test_load_model_error() -> None:
     """Test that CaptionGenerationError is raised if model loading fails."""
-    with patch("transformers.BlipForConditionalGeneration.from_pretrained", 
+    with patch("transformers.BlipForConditionalGeneration.from_pretrained",
                side_effect=Exception("Download failed")):
         model = CaptionModel()
         with pytest.raises(CaptionGenerationError):
             model._load_model()
 
-def test_load_model_success():
+def test_load_model_success() -> None:
     """Verify that model is moved to device and set to eval mode."""
     model_inst = CaptionModel()
-    
+
     mock_processor = MagicMock()
     mock_model = MagicMock()
-    
+
     mock_model.to.return_value = mock_model
 
-    with patch("transformers.BlipProcessor.from_pretrained", return_value=mock_processor), \
-         patch("transformers.BlipForConditionalGeneration.from_pretrained", return_value=mock_model):
-        
+    with patch("transformers.BlipProcessor.from_pretrained",
+               return_value=mock_processor), \
+         patch("transformers.BlipForConditionalGeneration.from_pretrained",
+               return_value=mock_model):
+
         model_inst._load_model()
-        
+
         mock_model.to.assert_called_with(model_inst.device)
         mock_model.eval.assert_called_once()
         assert model_inst.model == mock_model
@@ -159,23 +159,25 @@ def test_caption_model_success(monkeypatch: pytest.MonkeyPatch) -> None:
     model = create_fake_caption_model()
     monkeypatch.setattr(os.path, "exists", lambda _: True)
 
-
     monkeypatch.setattr("PIL.Image.open", lambda _: FakeImage())
     result = model.generate("fake.jpg")
     assert result == "dummy caption"
 
-def test_detect_device_cuda(monkeypatch: pytest.MonkeyPatch):
+def test_detect_device_cuda(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test that CUDA is detected when available."""
     monkeypatch.setattr(torch.cuda, "is_available", lambda: True)
     model = CaptionModel()
     assert model.device == "cuda"
 
-def test_detect_device_cpu(monkeypatch: pytest.MonkeyPatch):
+def test_detect_device_cpu(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test that CPU is detected when no accelerators are available."""
     monkeypatch.setattr(torch.cuda, "is_available", lambda: False)
     monkeypatch.setattr(torch.backends.mps, "is_available", lambda: False)
     model = CaptionModel()
     assert model.device == "cpu"
 
-def test_detect_device_mps(monkeypatch: pytest.MonkeyPatch):
+def test_detect_device_mps(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test that MPS is detected when available and CUDA is not."""
     monkeypatch.setattr(torch.cuda, "is_available", lambda: False)
     monkeypatch.setattr(torch.backends.mps, "is_available", lambda: True)
     model = CaptionModel()
@@ -186,9 +188,9 @@ def test_generate_batch(monkeypatch: pytest.MonkeyPatch) -> None:
     model = create_fake_caption_model()
     monkeypatch.setattr(os.path, "exists", lambda _: True)
     monkeypatch.setattr("PIL.Image.open", lambda _: FakeImage())
-    
+
     paths = ["img1.jpg", "img2.jpg"]
     results = model.generate_batch(paths)
-    
+
     assert len(results) == 2
     assert all(res == "dummy caption" for res in results)

@@ -18,7 +18,7 @@ class ModelTimeoutError(ImageCaptioningError):
 
 class ResourceLimitError(ImageCaptioningError):
     """Exception raised when system resources are insufficient for model operations."""
-    
+
 class ImageNotFoundError(ImageCaptioningError):
     """Exception raised when an image file is not found."""
 

@@ -5,9 +5,6 @@ enhancing image captioning.
 """
 import os
 import sys
-
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 import streamlit as st
 from PIL import Image
 from dotenv import load_dotenv
@@ -17,14 +14,15 @@ from app.enhancer import CaptionEnhancer
 
 from app.errors import (
     APIConfigurationError,
-    ModelNetworkError, 
+    ModelNetworkError,
     EnhancementError,
     CaptionGenerationError,
     ImageNotFoundError,
     InvalidImageError,
     ResourceLimitError
-)  
+)
 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 load_dotenv()
 
 st.set_page_config(page_title="AI Image Captioner", layout="centered")
@@ -64,7 +62,7 @@ if uploaded_file is not None:
     try:
         with st.spinner('BLIP is generating a caption...'):
             base_caption = captioner.generate(temp_path)
-    
+
         with st.spinner('Gemini is enhancing the caption...'):
             enhanced_caption = enhancer.enhance(base_caption)
 
