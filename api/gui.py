@@ -39,10 +39,17 @@ def load_models():
 st.title("AI Image Captioning")
 st.write("Upload an image and let the AI generate a caption, then enhance it with cinematic flair!")
 
+captioner = None
+enhancer = None
+
 try:
     captioner, enhancer = load_models()
 except Exception as e:
     st.error(f"Failed to initialize models: {e}")
+    st.stop()
+
+if captioner is None or enhancer is None:
+    st.error("Models failed to load properly")
     st.stop()
 
 uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
