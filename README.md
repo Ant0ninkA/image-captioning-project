@@ -24,13 +24,16 @@ A hybrid image captioning system that leverages local computer vision (BLIP) and
 
 ```text
 image-captioning/
-├── api/
-│   └── gui.py            
-├── app/
-│   ├── caption.py
-│   ├── enhancer.py
-│   ├── evaluate.py
-│   └── errors.py
+├── src
+    ├── api/
+    |   └── __init__.py 
+    │   └── gui.py            
+    ├── app/
+    │   ├── __init__.py
+    │   ├── caption.py
+    │   ├── enhancer.py
+    │   └── errors.py
+├── main.py
 ├── examples/             # Dataset for evaluation and testing
 ├── tests/                # Unit tests for core components
 ├── .env                  # Environment variables (API Keys)

@@ -7,7 +7,7 @@ import torch
 from PIL import Image
 from transformers import BlipProcessor, BlipForConditionalGeneration
 
-from app.errors import (
+from src.app.errors import (
     CaptionGenerationError,
     ImageNotFoundError,
     InvalidImageError,
@@ -102,10 +102,10 @@ class CaptionModel:
 
             return self.processor.decode(output[0], skip_special_tokens=True)
 
-        except torch.cuda.OutOfMemoryError:
+        except torch.cuda.OutOfMemoryError as exc:
             raise ResourceLimitError("Model inference failed due to GPU memory limits. " \
                                     "Try reducing the batch size or using a smaller model.",
-                                    details="Out of GPU memory during caption generation.")
+                                    details="Out of GPU memory during caption generation.") from exc
         except Exception as e:
             raise CaptionGenerationError("Caption generation failed.", details=str(e)) from e
 

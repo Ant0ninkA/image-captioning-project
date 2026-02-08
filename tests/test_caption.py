@@ -5,13 +5,15 @@ from typing import Any
 from unittest.mock import MagicMock, patch
 import pytest
 import torch
-from app.caption import CaptionModel
-from app.errors import (
+from src.app.caption import CaptionModel
+from src.app.errors import (
     CaptionGenerationError,
     ImageNotFoundError,
     InvalidImageError,
     ResourceLimitError
 )
+
+# pylint: disable=protected-access, attribute-defined-outside-init, too-few-public-methods
 
 class DummyProcessor:
     """Mock for the BLIP processor."""
@@ -33,6 +35,10 @@ class DummyInputs(dict):
 
 class DummyModel:
     """Mock for the BLIP model."""
+    def __init__(self) -> None:
+        """Initialize the dummy model."""
+        self.is_eval = False
+
     def generate(self, **kwargs: Any) -> list[list[int]]:
         """Simulate text generation."""
         _ = kwargs
@@ -55,7 +61,6 @@ def create_fake_caption_model() -> CaptionModel:
     model.processor = DummyProcessor()
     model.model = DummyModel()
     model.max_length = 20
-    # pylint: disable=protected-access
     model._load_model = lambda: None
     return model
 

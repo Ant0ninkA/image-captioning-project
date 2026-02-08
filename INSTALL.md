@@ -53,13 +53,7 @@ GEMINI_API_KEY=<your_api_key>
 
 ## Run the application
 ```bash
-streamlit run api/gui.py
-```
-
-## Veryfication
-To ensure everything is installed correctly, run the automated tests:
-```bash
-pytest -v
+streamlit run src/api/gui.py
 ```
 
 ## Troubleshooting

@@ -8,7 +8,7 @@ import logging
 import google.generativeai as genai
 from dotenv import load_dotenv
 
-from app.errors import (
+from src.app.errors import (
     EnhancementError,
     APIConfigurationError,
     ResourceLimitError,
@@ -51,7 +51,7 @@ class CaptionEnhancer:
 
                 if not available_models:
                     raise EnhancementError("No generative models available for this API key.",
-                                    details="Check your API key permissions and model availability.")
+                                details="Check your API key permissions and model availability.")
 
                 priority_list = [
                     'models/gemini-1.5-flash',
@@ -68,7 +68,7 @@ class CaptionEnhancer:
                 if not selected_model_name:
                     selected_model_name = available_models[0]
 
-                logger.info(f"Using Gemini model: {selected_model_name}")
+                logger.info("Using Gemini model: %s", selected_model_name)
 
                 self.model = genai.GenerativeModel(
                     model_name=selected_model_name,
@@ -79,7 +79,7 @@ class CaptionEnhancer:
                     )
                 )
             except Exception as e:
-                logger.error(f"Initialization failed: {str(e)}")
+                logger.error("Initialization failed: %s", str(e))
                 raise APIConfigurationError(f"API initialization failed: {e}",
                                              details=str(e)) from e
 
@@ -119,11 +119,12 @@ class CaptionEnhancer:
         except Exception as e:
             err_msg = str(e).lower()
             if "api_key" in err_msg or "403" in err_msg:
-                raise APIConfigurationError("Invalid Gemini API Key", details=str(e))
-            elif "quota" in err_msg or "429" in err_msg:
-                raise ResourceLimitError("Gemini API quota exhausted", details=str(e))
-            elif "network" in err_msg or "connection" in err_msg:
-                raise ModelNetworkError("Please check your internet connection", details=str(e))
-            else:
-                raise EnhancementError("Enhancement failed", details=str(e))
-
+                raise APIConfigurationError("Invalid Gemini API Key",
+                                             details=str(e)) from e
+            if "quota" in err_msg or "429" in err_msg:
+                raise ResourceLimitError("Gemini API quota exhausted",
+                                          details=str(e)) from e
+            if "network" in err_msg or "connection" in err_msg:
+                raise ModelNetworkError("Please check your internet connection",
+                                        details=str(e)) from e
+            raise EnhancementError("Enhancement failed", details=str(e)) from e
